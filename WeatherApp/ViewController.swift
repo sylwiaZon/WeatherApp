@@ -12,6 +12,11 @@ class ViewController: UIViewController {
 
     @IBOutlet weak var dateView: UILabel!
     @IBOutlet weak var minTempView: UITextField!
+    @IBOutlet weak var maxTempView: UITextField!
+    @IBOutlet weak var windSpeedView: UITextField!
+    @IBOutlet weak var windDirectionView: UITextField!
+    @IBOutlet weak var pressureView: UITextField!
+    @IBOutlet weak var humidityView: UITextField!
     @IBOutlet weak var nextDayButton: UIButton!
     @IBOutlet weak var previousDayButton: UIButton!
     @IBOutlet weak var weatherImageView: UIImageView!
@@ -24,7 +29,7 @@ class ViewController: UIViewController {
         downloadData()
     }
 
-    func downloadData() {
+    private func downloadData() {
         let url = URL(string: "https://www.metaweather.com/api/location/44418")!
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
             guard let data = data else { return }
@@ -45,20 +50,32 @@ class ViewController: UIViewController {
         task.resume()
     }
     
-    func displayData() {
+    private func displayData() {
         let dayData = weatherData[self.day]
-        if let minTemp = dayData["min_temp"] as? Double {
-            self.minTempView.text = String(minTemp)
-        }
-        if let date = dayData["applicable_date"] as? String {
-            self.dateView.text = date
-        }
+        self.dateView.text = "Current date: " + getStringField(data: dayData, fieldName: "applicable_date")
+        self.minTempView.text = getDoubleField(data: dayData, fieldName: "min_temp") + "C"
+        self.maxTempView.text = getDoubleField(data: dayData, fieldName:"max_temp") + "C"
+        self.pressureView.text = getDoubleField(data: dayData, fieldName: "air_pressure") + "mbar"
+        self.windDirectionView.text = getStringField(data: dayData, fieldName: "wind_direction_compass")
+        self.windSpeedView.text = getDoubleField(data: dayData, fieldName: "wind_speed") + "mph"
+        self.humidityView.text = getDoubleField(data: dayData, fieldName: "humidity") + "%"
+        
         if let state = dayData["weather_state_abbr"] as? String {
             self.displayImage(urlString: "https://www.metaweather.com/static/img/weather/png/64/\(state).png")
         }
     }
     
-    func displayImage(urlString: String) {
+    private func getStringField(data: [String: Any], fieldName: String) -> String {
+        return (data[fieldName] as? String) ?? "--"
+    }
+    private func getDoubleField(data: [String: Any], fieldName: String) -> String {
+        let value = (data[fieldName] as? Double)
+        if (value == nil) {
+            return "--"
+        }
+        return String((value!*100).rounded()/100.0)
+    }
+    private func displayImage(urlString: String) {
         let url = URL(string: urlString)!
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
             guard let data = data else { return }
@@ -70,7 +87,7 @@ class ViewController: UIViewController {
         task.resume()
     }
     
-    func adjustButtons() {
+    private func adjustButtons() {
         nextDayButton.isEnabled = true
         previousDayButton.isEnabled = true
         if (day <= 0) {
