@@ -26,6 +26,7 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        adjustButtons()
         downloadData()
     }
 
@@ -40,7 +41,9 @@ class ViewController: UIViewController {
                         self.weatherData = weather
                         DispatchQueue.main.async {
                             self.displayData()
-                        }                    }
+                            self.adjustButtons()
+                        }
+                    }
                 }
             } catch let error as NSError {
                 print(error)
@@ -53,15 +56,15 @@ class ViewController: UIViewController {
     private func displayData() {
         let dayData = weatherData[self.day]
         self.dateView.text = "Current date: " + getStringField(data: dayData, fieldName: "applicable_date")
-        self.minTempView.text = getDoubleField(data: dayData, fieldName: "min_temp") + "C"
-        self.maxTempView.text = getDoubleField(data: dayData, fieldName:"max_temp") + "C"
-        self.pressureView.text = getDoubleField(data: dayData, fieldName: "air_pressure") + "mbar"
+        self.minTempView.text = getDoubleField(data: dayData, fieldName: "min_temp") + " C"
+        self.maxTempView.text = getDoubleField(data: dayData, fieldName:"max_temp") + " C"
+        self.pressureView.text = getDoubleField(data: dayData, fieldName: "air_pressure") + " mbar"
         self.windDirectionView.text = getStringField(data: dayData, fieldName: "wind_direction_compass")
-        self.windSpeedView.text = getDoubleField(data: dayData, fieldName: "wind_speed") + "mph"
-        self.humidityView.text = getDoubleField(data: dayData, fieldName: "humidity") + "%"
+        self.windSpeedView.text = getDoubleField(data: dayData, fieldName: "wind_speed") + " mph"
+        self.humidityView.text = getDoubleField(data: dayData, fieldName: "humidity") + " %"
         
         if let state = dayData["weather_state_abbr"] as? String {
-            self.displayImage(urlString: "https://www.metaweather.com/static/img/weather/png/64/\(state).png")
+            self.displayImage(urlString: self.getImageLink(state: state))
         }
     }
     
@@ -75,6 +78,11 @@ class ViewController: UIViewController {
         }
         return String((value!*100).rounded()/100.0)
     }
+    
+    private func getImageLink(state: String) -> String {
+        return "https://www.metaweather.com/static/img/weather/png/64/\(state).png"
+    }
+    
     private func displayImage(urlString: String) {
         let url = URL(string: urlString)!
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
